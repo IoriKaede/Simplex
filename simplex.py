@@ -6,11 +6,42 @@
 #
 # ‐‐-‐---‐‐‐-‐‐‐‐‐--‐‐-‐‐‐‐--‐-‐--‐-------‐-‐‐-‐‐-‐-‐--‐--‐-‐‐‐‐‐‐‐-‐‐-‐-‐‐----‐--‐‐-----‐---‐‐‐-‐--
 
-import sys
-import numpy
+'''{
+  "sense": "minimize",
+  "objective": [ -10.0, -12.0, -12.0, 0.0, 0.0, 0.0 ],
+  "signs": [ 1, 1, 1, 1, 1, 1 ],
+  "constraints": [
+    { "coefficients": { "0": 1.0, "1": 2.0, "2": 2.0, "3": 1.0 }, "relation": "=", "rhs": 20 },
+    { "coefficients": { "0": 2.0, "1": 1.0, "2": 2.0, "4": 1.0 }, "relation": "=", "rhs": 20 },
+    { "coefficients": { "0": 2.0, "1": 2.0, "2": 1.0, "5": 1.0 }, "relation": "=", "rhs": 20 }
+  ],
+  "basis": [ 3, 4, 5 ]
+}'''
+
+
+import numpy as np
 from lp import LP
 
 def solve(lp):
+  m = lp.num_rows
+  n = lp.num_columns
+  A = np.zeros((m, n))
+  for i, con in enumerate(lp.constraints):
+    for j, val in con['coefficients'].items():
+      A[i, j] = val
+  for con in lp.constraints:
+    b = np.array(con['rhs'])
+    c = np.array(lp.objective)
+  print(m,n,A,b,c)
+
+
+
+
+
+
+
+
+
   # So far we just print it.
   print('Input LP:')
   print(lp)
@@ -18,16 +49,7 @@ def solve(lp):
 
 if __name__ == '__main__':
 
-  if len(sys.argv) >= 2:
-    # Read the file name from the command line (in case you call it like that:
-    # python3 simplex.py orig-basis-blend.json
-    file_name = sys.argv[1]
-  else:
-    # Or manually set a name here.
-    file_name = 'orig-basis-blend.json'
-
-  # First argument is the file name.
-  file_name = sys.argv[1]
+  file_name = 'BT-Example-3.5-std.json'
   with open(file_name, 'r') as fp:
     lp = LP(fp.read())
     solve(lp)
