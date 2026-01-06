@@ -32,18 +32,20 @@ def solve(lp):
   for con in lp.constraints:
     b = np.array(con['rhs'])
     c = np.array(lp.objective)
-  print(m,n,A,b,c)
 
   #while limit:
-    n = list(range((lp.num_columns)+1))
-    n = n.remove(0)
-    basis = lp.basis
-    print(n)
-    for i in n:
-      if i in basis:
-        n.remove(i)
-      else:
-        pass
+  N = list(range(1,n))
+  basis = lp.basis
+  for i in N:
+    if i in basis:
+      N.remove(i)
+    else:
+      pass
+
+  for i in list(basis):
+    A_b = A[:, i]
+    x_b = np.linalg.solve(A_b, b)
+  print(A_b, x_b)
 
   # So far we just print it.
   print('Input LP:')
