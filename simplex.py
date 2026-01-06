@@ -52,12 +52,19 @@ def solve(lp):
   y = np.linalg.solve(A_B.T, c_B.T)
   print(y)
 
-  # ↓ not finished
+  x_N = np.zeros(len(N))
+  x = np.append(x_B, x_N)
+  print(x)
+
   c_j = np.array([])
   for j in N:
     c_j= np.append(c_j , c[j] - y.T @ A[:, j])
   print(c_j)
 
+  # ↓ not finished
+  if c_j >= np.zeros(len(c_j)):
+    print(x,B)
+    return "optimal", x, basis
 
   # So far we just print it.
   print('Input LP:')
