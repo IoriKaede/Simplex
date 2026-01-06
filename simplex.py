@@ -41,7 +41,6 @@ def solve(lp):
 
 
 
-
   # So far we just print it.
   print('Input LP:')
   print(lp)
