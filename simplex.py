@@ -36,18 +36,28 @@ def solve(lp):
   c = np.array(lp.objective)
 
   #while limit:
-  N = list(range(1,n))
+  N = list(range(n))
+  print(N)
   basis = lp.basis
-  for i in N:
+  for i in N.copy():
     if i in basis:
       N.remove(i)
     else:
       pass
+  print(N)
 
   A_B = A[:, list(basis)]
-  print(A_B)
   x_B = np.linalg.solve(A_B, b)
-  print(x_B)
+  c_B = c[list(basis)]
+  y = np.linalg.solve(A_B.T, c_B.T)
+  print(y)
+
+  # ↓ not finished
+  c_j = np.array([])
+  for j in N:
+    c_j= np.append(c_j , c[j] - y.T @ A[:, j])
+  print(c_j)
+
 
   # So far we just print it.
   print('Input LP:')
