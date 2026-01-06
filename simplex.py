@@ -34,9 +34,11 @@ def solve(lp):
     c = np.array(lp.objective)
   print(m,n,A,b,c)
 
-  while limit:
-    n = list(range(len(lp.basis)))
+  #while limit:
+    n = list(range((lp.num_columns)+1))
+    n = n.remove(0)
     basis = lp.basis
+    print(n)
     for i in n:
       if i in basis:
         n.remove(i)
