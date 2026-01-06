@@ -34,12 +34,14 @@ def solve(lp):
     c = np.array(lp.objective)
   print(m,n,A,b,c)
 
-
-
-
-
-
-
+  while limit:
+    n = list(range(len(lp.basis)))
+    basis = lp.basis
+    for i in n:
+      if i in basis:
+        n.remove(i)
+      else:
+        pass
 
   # So far we just print it.
   print('Input LP:')
