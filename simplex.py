@@ -29,9 +29,11 @@ def solve(lp):
   for i, con in enumerate(lp.constraints):
     for j, val in con['coefficients'].items():
       A[i, j] = val
+  b_list = []
   for con in lp.constraints:
-    b = np.array(con['rhs'])
-    c = np.array(lp.objective)
+    b_list.append(float(con['rhs']))
+  b = np.array(b_list)
+  c = np.array(lp.objective)
 
   #while limit:
   N = list(range(1,n))
@@ -42,10 +44,10 @@ def solve(lp):
     else:
       pass
 
-  for i in list(basis):
-    A_b = A[:, i]
-    x_b = np.linalg.solve(A_b, b)
-  print(A_b, x_b)
+  A_B = A[:, list(basis)]
+  print(A_B)
+  x_B = np.linalg.solve(A_B, b)
+  print(x_B)
 
   # So far we just print it.
   print('Input LP:')
