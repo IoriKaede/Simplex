@@ -62,7 +62,7 @@ def solve(lp):
   print(c_j)
 
   # ↓ not finished
-  if c_j >= np.zeros(len(c_j)):
+  if np.all(c_j >= 0):
     print(x,B)
     return "optimal", x, basis
 
