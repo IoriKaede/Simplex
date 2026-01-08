@@ -67,7 +67,7 @@ def solve(lp):
     return "optimal", x, basis
 
   else:
-    k = np.min(c_j)   #choosing the most negative k
+    k = np.argmin(c_j)  #choosing the most negative k
 
 
   # So far we just print it.
