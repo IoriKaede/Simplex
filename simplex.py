@@ -34,56 +34,58 @@ def solve(lp):
     b_list.append(float(con['rhs']))
   b = np.array(b_list)
   c = np.array(lp.objective)
-  #while limit:
-  N = list(range(n))
   basis = lp.basis
   B = list(basis)
-  for i in N.copy():
-    if i in basis:
-      N.remove(i)
-    else:
-      pass
+  N = list(range(n))
 
-  A_B = A[:, B]
-  x_B = np.linalg.solve(A_B, b)
-  c_B = c[B]
-  y = np.linalg.solve(A_B.T, c_B.T)
+  count = 0
+  while count < 9999:
+    for i in N.copy():
+      if i in basis:
+        N.remove(i)
+      else:
+        pass
 
-  x_N = np.zeros(len(N))
-  x = np.append(x_B, x_N)
+    A_B = A[:, B]
+    x_B = np.linalg.solve(A_B, b)
+    c_B = c[B]
+    y = np.linalg.solve(A_B.T, c_B.T)
 
-  c_j = np.array([])
-  for j in N:
-    c_j= np.append(c_j , c[j] - y.T @ A[:, j])
-  print(f"c_j={c_j}")
+    x_N = np.zeros(len(N))
+    x = np.append(x_B, x_N)
 
-  # ↓ not finished
-  if np.all(c_j >= 0):
-    print(x,B)
-    return "optimal", x, basis
+    c_j = np.array([])
+    for j in N:
+      c_j= np.append(c_j , c[j] - y.T @ A[:, j])
 
-  k = np.argmin(c_j)  #choosing the most negative k
-  print(k)
+    if np.all(c_j >= 0):
+      return "optimal", x, basis
 
-  d_B = np.linalg.solve(-A_B, A[:, k])
-  d = np.zeros(n)
-  d[B] = d_B
-  d[k] = 1
+    k = np.argmin(c_j)  #choosing the most negative k
 
-  if np.all(d >= 0):
-    return "unbounded", x, d
+    d_B = np.linalg.solve(-A_B, A[:, k])
+    d = np.zeros(n)
+    d[B] = d_B
+    d[k] = 1
 
-  ratio = np.array([])      #ratio test
-  for j in B:
-    if d[j] < 0:
-      np.append(ratio, -(x[j] / d[j]))
-    else:
-      pass
-  theta = np.min(ratio)
+    if np.all(d >= 0):
+      return "unbounded", x, d
 
+    ratio = np.array([])      #ratio test
+    for j in B:
+      if d[j] < 0:
+        np.append(ratio, -(x[j] / d[j]))
+      else:
+        pass
+    #theta_star = np.min(ratio)
+
+    l = np.argmin(ratio)
+    B[l] = k
+    count += 1
+  return "limit reached", x, B
   # So far we just print it.
-  print('Input LP:')
-  print(lp)
+  #print('Input LP:')
+  #print(lp)
 
 
 if __name__ == '__main__':
