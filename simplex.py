@@ -74,7 +74,7 @@ def solve(lp):
     ratio = np.array([])      #ratio test
     for j in B:
       if d[j] < 0:
-        np.append(ratio, -(x[j] / d[j]))
+        ratio = np.append(ratio, -(x[j] / d[j]))
       else:
         pass
     #theta_star = np.min(ratio)
