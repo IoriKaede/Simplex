@@ -31,20 +31,21 @@ def PrimalSimplex(A, b, c, B):
       pass
   count = 0
   while count < 9999:
-    print(B)
 
     A_B = A[:, B]
     x = np.zeros(n)
-    x[B] = np.linalg.solve(A_B, b)
-    c_B = c[B]
-    y = np.linalg.solve(A_B.T, c_B)
+    try:
+      x[B] = np.linalg.solve(A_B, b)
+      c_B = c[B]
+      y = np.linalg.solve(A_B.T, c_B)
+    except np.linalg.LinAlgError:
+      return {"status": "singular matrix"}
 
     c_bar = np.zeros(n)
     c_bar[N] = c[N] - y.T @ A[:, N]
 
     if np.all(c_bar > -1e-7):
-      print(x)
-      return 'optimal', x
+      return {"status": "optimal", "primal": x}
 
     k = min(j for j, v in enumerate(c_bar) if v < -1e-7)  # choosing the most negative k
 
@@ -53,7 +54,7 @@ def PrimalSimplex(A, b, c, B):
     d[k] = 1
 
     if np.all(d > -1e-7):
-      return "unbounded", x, d
+      return {"status": "unbounded", "primal": x}
 
     ratio = []  # ratio test
     for j in B:
@@ -67,7 +68,7 @@ def PrimalSimplex(A, b, c, B):
     count += 1
     B[l] = k
 
-  return "limit reached", x, B
+  return {"status" : "limit reached", "primal" : x }
 
 
 def solve(lp):
@@ -83,9 +84,8 @@ def solve(lp):
   b = np.array(b_list)
   c = np.array(lp.objective)
   basis = lp.basis
-  sigma, x = PrimalSimplex(A, b, c, list(basis))
-  if sigma == "optimal":
-    return {"primal": x}
+  result = PrimalSimplex(A, b, c, list(basis))
+  return result
   # So far we just print it.
   #print('Input LP:')
   #print(lp)
@@ -93,10 +93,9 @@ def solve(lp):
 
 if __name__ == '__main__':
 
-  file_name = 'tests/BT-Example-3.6-std.json'
+  file_name = 'orig-basis-blend.json'
   with open(file_name, 'r') as fp:
     lp = LP(fp.read())
     sol = solve(lp)
-    print(lp.primal_value(sol["primal"]))
 
 
