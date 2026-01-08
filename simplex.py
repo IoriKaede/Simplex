@@ -21,6 +21,54 @@
 
 import numpy as np
 from lp import LP
+def PrimalSimplex(A, b, c, B):
+  n = len(A[0])
+  N = list(range(n))
+  for i in N.copy():
+    if i in B:
+      N.remove(i)
+    else:
+      pass
+  count = 0
+  while count < 9999:
+    print(B)
+
+    A_B = A[:, B]
+    x = np.zeros(n)
+    x[B] = np.linalg.solve(A_B, b)
+    c_B = c[B]
+    y = np.linalg.solve(A_B.T, c_B)
+
+    c_bar = np.zeros(n)
+    c_bar[N] = c[N] - y.T @ A[:, N]
+
+    if np.all(c_bar > -1e-7):
+      print(x)
+      return 'optimal', x
+
+    k = min(j for j, v in enumerate(c_bar) if v < -1e-7)  # choosing the most negative k
+
+    d = np.zeros(n)
+    d[B] = np.linalg.solve(-A_B, A[:, k])
+    d[k] = 1
+
+    if np.all(d > -1e-7):
+      return "unbounded", x, d
+
+    ratio = []  # ratio test
+    for j in B:
+      if d[j] < 0:
+        ratio.append(-(x[j] / d[j]))
+      else:
+        ratio.append(float("inf"))
+    l = np.argmin(ratio)
+
+    N[N.index(k)] = B[l]
+    count += 1
+    B[l] = k
+
+  return "limit reached", x, B
+
 
 def solve(lp):
   m = lp.num_rows
@@ -35,54 +83,9 @@ def solve(lp):
   b = np.array(b_list)
   c = np.array(lp.objective)
   basis = lp.basis
-  B = list(basis)
-  N = list(range(n))
-
-  count = 0
-  while count < 9999:
-    for i in N.copy():
-      if i in basis:
-        N.remove(i)
-      else:
-        pass
-
-    A_B = A[:, B]
-    x_B = np.linalg.solve(A_B, b)
-    c_B = c[B]
-    y = np.linalg.solve(A_B.T, c_B.T)
-
-    x_N = np.zeros(len(N))
-    x = np.append(x_B, x_N)
-
-    c_j = np.array([])
-    for j in N:
-      c_j= np.append(c_j , c[j] - y.T @ A[:, j])
-
-    if np.all(c_j >= 0):
-      return "optimal", x, basis
-
-    k = np.argmin(c_j)  #choosing the most negative k
-
-    d_B = np.linalg.solve(-A_B, A[:, k])
-    d = np.zeros(n)
-    d[B] = d_B
-    d[k] = 1
-
-    if np.all(d >= 0):
-      return "unbounded", x, d
-
-    ratio = np.array([])      #ratio test
-    for j in B:
-      if d[j] < 0:
-        ratio = np.append(ratio, -(x[j] / d[j]))
-      else:
-        pass
-    #theta_star = np.min(ratio)
-
-    l = np.argmin(ratio)
-    B[l] = k
-    count += 1
-  return "limit reached", x, B
+  sigma, x = PrimalSimplex(A, b, c, list(basis))
+  if sigma == "optimal":
+    return {"primal": x}
   # So far we just print it.
   #print('Input LP:')
   #print(lp)
@@ -90,8 +93,10 @@ def solve(lp):
 
 if __name__ == '__main__':
 
-  file_name = 'BT-Example-3.5-std.json'
+  file_name = 'tests/BT-Example-3.6-std.json'
   with open(file_name, 'r') as fp:
     lp = LP(fp.read())
-    solve(lp)
+    sol = solve(lp)
+    print(lp.primal_value(sol["primal"]))
+
 
