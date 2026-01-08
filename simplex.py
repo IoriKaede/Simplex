@@ -37,29 +37,25 @@ def solve(lp):
 
   #while limit:
   N = list(range(n))
-  print(N)
   basis = lp.basis
   for i in N.copy():
     if i in basis:
       N.remove(i)
     else:
       pass
-  print(N)
 
   A_B = A[:, list(basis)]
   x_B = np.linalg.solve(A_B, b)
   c_B = c[list(basis)]
   y = np.linalg.solve(A_B.T, c_B.T)
-  print(y)
 
   x_N = np.zeros(len(N))
   x = np.append(x_B, x_N)
-  print(x)
 
   c_j = np.array([])
   for j in N:
     c_j= np.append(c_j , c[j] - y.T @ A[:, j])
-  print(c_j)
+  print(f"c_j={c_j}")
 
   # ↓ not finished
   if np.all(c_j >= 0):
@@ -68,7 +64,16 @@ def solve(lp):
 
   else:
     k = np.argmin(c_j)  #choosing the most negative k
+    print(k)
 
+  d_B = np.linalg.solve(-A_B, A[:, k])
+
+  if np.all(d_B >= 0):
+    d = np.zeros(n)
+    d[list(basis)] = d_B
+    d[k] = 1
+    print(d)
+    return "unbounded", x, d
 
   # So far we just print it.
   print('Input LP:')
