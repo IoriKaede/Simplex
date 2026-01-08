@@ -66,6 +66,14 @@ def solve(lp):
     print(x,B)
     return "optimal", x, basis
 
+  else:
+    for i in c_j:       #choosing the k
+      if c_j[i] < 0:
+        k = c_j[i]
+      else:
+        pass
+
+
   # So far we just print it.
   print('Input LP:')
   print(lp)
