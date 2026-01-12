@@ -48,7 +48,7 @@ def PrimalSimplex(A, b, c, B):
     #If ¯c_N ≥ O then return (“optimal”, solution x, optimal basis B)
     #if np.all(c_bar > -1e-7):
     if np.all(c_bar[N] > -1e-7):
-        return {"status": "optimal", "primal": x}
+        return {"status": "optimal", "primal": x, "dual" : y}
                     # small change: c_bar[N] instead of c_bar
                     # In c_bar we also have c_bar[B] which should be zero's, but due to noise or if indexing is mixed up, it can get <0
 
@@ -64,7 +64,7 @@ def PrimalSimplex(A, b, c, B):
 
     #If d ≥ O_N then return (“unbounded“, solution x, unbounded direction d).
     if np.all(d > -1e-7):
-      return {"status": "unbounded", "primal": x}
+      return {"status": "unbounded", "primal": x, "dual" : y}
 
     #Compute θ* := min{−x_j/d_j | j ∈ B, d_j < 0}
     ratio = []  # ratio test
@@ -86,7 +86,7 @@ def PrimalSimplex(A, b, c, B):
     N.append(B_l)
                     # small change: Changed N[N.index(k)], since index doesn't matter. Have to make sure it actually removes k.
     count += 1
-  return {"status" : "limit reached", "primal" : x }
+  return {"status" : "limit reached", "primal" : x , "dual" : y}
 
 
 def solve(lp):
