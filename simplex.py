@@ -39,7 +39,7 @@ def PrimalSimplex(A, b, c, B):
     try:
       x[B] = np.linalg.solve(A_B, b)
       c_B = c[B]
-      y = np.linalg.solve(A_B.T, c_B)
+      y = np.linalg.solve(A_B.T, c_B) # y is the optimal dual solution
     except np.linalg.LinAlgError:
       return {"status": "singular matrix"}
 
@@ -64,7 +64,7 @@ def PrimalSimplex(A, b, c, B):
 
     #If d ≥ O_N then return (“unbounded“, solution x, unbounded direction d).
     if np.all(d > -1e-7):
-      return {"status": "unbounded", "primal": x, "dual" : y}
+      return {"status": "unbounded", "primal": x, "dual" : y, "ray":d} #direction included
 
     #Compute θ* := min{−x_j/d_j | j ∈ B, d_j < 0}
     ratio = []  # ratio test
@@ -120,7 +120,7 @@ def solve(lp):
 
 if __name__ == '__main__':
 
-  file_name = 'orig-basis-capri.json'
+  file_name = 'unbd-basis-agg3.json'
   with open(file_name, 'r') as fp:
     lp = LP(fp.read())
     sol = solve(lp)
