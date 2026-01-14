@@ -25,17 +25,14 @@ import numpy as np
 def PrimalSimplex(A, b, c, B):
   # Set N:= {1,2, ...,k} \ B
   n = len(A[0])
-  N = list(range(n))
-  for i in N.copy():
-    if i in B:
-      N.remove(i)
-    else:
-      pass
+  N = [i for i in range(n) if i not in B] #fix the recompute problem
+
   count = 0
   while count < 9999:
-    print(count)
     #Solve A_{*,B} x_B = b for x_B ∈ R^B and set x_N := O_N
     #Solve y⊺A_{*,B} = c_B for y ∈ R^m and compute ¯c_j := c_j − y⊺A_{*,B} for all j ∈ N
+
+
     A_B = A[:, B]
     x = np.zeros(n)
     try:
@@ -65,7 +62,7 @@ def PrimalSimplex(A, b, c, B):
     d[k] = 1
 
     #If d ≥ O_N then return (“unbounded“, solution x, unbounded direction d).
-    if np.all(d > -1e-7):
+    if np.all(d[B] > -1e-7):
       return {"status": "unbounded", "primal": x, "dual" : y, "ray":d, "basis":B} #direction included
 
     #Compute θ* := min{−x_j/d_j | j ∈ B, d_j < 0}
@@ -91,8 +88,7 @@ def PrimalSimplex(A, b, c, B):
   return {"status" : "limit reached", "primal" : x , "dual" : y, "basis":B}
 
 def PrimalSimplex_without_basis(A,b,c):
-  m = lp.num_rows
-  n = lp.num_columns
+  m,n = A.shape #not calling lp in this function
   A_bar = np.hstack((A , np.identity(m)))
   b_bar = b
   c_bar = np.zeros(n+m)
@@ -100,20 +96,46 @@ def PrimalSimplex_without_basis(A,b,c):
   B_bar = []
   for i in range(n,n+m):
     B_bar.append(i)
-  print("phase 1")
-  dic = PrimalSimplex(A_bar, b_bar, c_bar, B_bar)
-  print("after phase 1")
+  dic = PrimalSimplex(A_bar, b_bar, c_bar, B_bar)  #dictionary to hold all the variables
+
   status = dic["status"]
   x_prime = dic["primal"]
   B_prime = dic["basis"]
-  B_p = list(B_prime)
-  print(x_prime)
+  B_p = B_prime
+  #print(B_p)
 
   if status =="limit reached":
     return {"status":"limit reached"}
   if c_bar.T @ x_prime > 0 :
     return {"status":"infeasible"}
 
+  for index in B_p:
+    if index >= n:
+      A_B = A_bar[:, B_p]
+      A_B_inv = np.linalg.inv(A_B)
+  l = []
+  for index in [idx for idx in B_p if idx >= n]:
+
+    rows = B_p.index(index)
+    lambda_m = A_B_inv[rows,:]
+
+    k = -1
+    for j in range(n):
+      if j not in B_p and abs((lambda_m @A_bar)[j]) > 1e-10:
+        k = j
+        break
+    if k != -1:
+      B_p[rows] = k
+      A_B = A_bar[:,B_p]
+      A_B_inv = np.linalg.inv(A_B)
+    else:
+      l.append(rows)
+  for li in l:
+    A = np.delete(A, li, axis=0)
+    b = np.delete(b, li)
+  dic_new = PrimalSimplex(A, b, c, [idx for idx in B_p if idx < n])
+  basis_new = dic_new["basis"]
+  return basis_new
 
 
 
@@ -131,10 +153,7 @@ def solve(lp):
     b_list.append(float(con['rhs']))
   b = np.array(b_list)
   c = np.array(lp.objective)
-  for i in range(len(b)):
-    if any(bi <0 for bi in b):
-      A[i] = - A[i]
-      b[i] = - b[i]
+
             # we use arrays so we can use matrix multiplication
   # basis = lp.basis
             #small change: might not work if there is no basis given
@@ -145,11 +164,9 @@ def solve(lp):
   if basis is None:
     basis = PrimalSimplex_without_basis(A, b, c)
     if basis is None:
-      return {"status": "infeasible"}
+      basis = list(range(n-m, n))
 
             #small change: Use slack variables if no basis provided
-
-
   result = PrimalSimplex(A, b, c, list(basis))
   return result
   # # So far we just print it.
@@ -159,7 +176,7 @@ def solve(lp):
 
 if __name__ == '__main__':
 
-  file_name = 'orig-std-adlittle.json'
+  file_name = 'orig-std-scorpion.json'
   with open(file_name, 'r') as fp:
     lp = LP(fp.read())
     sol = solve(lp)
