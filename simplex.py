@@ -40,7 +40,7 @@ def PrimalSimplex(A, b, c, B):
       c_B = c[B]
       y = np.linalg.solve(A_B.T, c_B) # y is the optimal dual solution
     except np.linalg.LinAlgError:
-      return {"status": "singular matrix"}
+      return {"status":"singular matrix"}
 
     c_bar = np.zeros(n)
     c_bar[N] = c[N] - y.T @ A[:, N]
@@ -97,22 +97,28 @@ def PrimalSimplex_without_basis(A,b,c):
   for i in range(n,n+m):
     B_bar.append(i)
   dic = PrimalSimplex(A_bar, b_bar, c_bar, B_bar)  #dictionary to hold all the variables
+  if dic["status"] != "optimal":
+    return {"status": dic["status"]}
 
   status = dic["status"]
   x_prime = dic["primal"]
   B_prime = dic["basis"]
+
+  y_prime = dic["dual"] # for farkas returning?
+
   B_p = B_prime
   #print(B_p)
 
   if status =="limit reached":
     return {"status":"limit reached"}
-  if c_bar.T @ x_prime > 0 :
-    return {"status":"infeasible"}
+  if c_bar.T @ x_prime > 1e-7 :
+    return {"status":"infeasible", "farkas":y_prime}
 
   for index in B_p:
     if index >= n:
       A_B = A_bar[:, B_p]
       A_B_inv = np.linalg.inv(A_B)
+
   l = []
   for index in [idx for idx in B_p if idx >= n]:
 
@@ -130,12 +136,16 @@ def PrimalSimplex_without_basis(A,b,c):
       A_B_inv = np.linalg.inv(A_B)
     else:
       l.append(rows)
-  for li in l:
-    A = np.delete(A, li, axis=0)
-    b = np.delete(b, li)
-  dic_new = PrimalSimplex(A, b, c, [idx for idx in B_p if idx < n])
-  basis_new = dic_new["basis"]
-  return basis_new
+
+  A = np.delete(A, l, axis=0)
+  b = np.delete(b, l)
+  c = c
+
+  B_p_new = [int(idx) for idx in B_p if idx < n]
+
+  dic_new = PrimalSimplex(A, b, c, B_p_new)
+  #basis_new = dic_new["basis"]
+  return dic_new
 
 
 
@@ -162,7 +172,10 @@ def solve(lp):
   except KeyError:
     basis = None
   if basis is None:
-    basis = PrimalSimplex_without_basis(A, b, c)
+    dic_new = PrimalSimplex_without_basis(A, b, c)
+    if dic_new["status"] == "infeasible" or "singular matrix":
+      return dic_new
+    basis = dic_new["basis"]
     if basis is None:
       basis = list(range(n-m, n))
 
@@ -175,7 +188,7 @@ def solve(lp):
 
 if __name__ == '__main__':
 
-  file_name = 'orig-std-adlittle.json'
+  file_name = 'orig-std-e226.json'
   with open(file_name, 'r') as fp:
     lp = LP(fp.read())
     sol = solve(lp)
