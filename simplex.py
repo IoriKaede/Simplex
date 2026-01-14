@@ -132,7 +132,7 @@ def solve(lp):
   b = np.array(b_list)
   c = np.array(lp.objective)
   for i in range(len(b)):
-    if any(bi <0 for bi in b):
+    if b[i] <0:
       A[i] = - A[i]
       b[i] = - b[i]
             # we use arrays so we can use matrix multiplication
