@@ -173,10 +173,9 @@ def solve(lp):
   # print('Input LP:')
   # print(lp)
 
-
 if __name__ == '__main__':
 
-  file_name = 'orig-std-scorpion.json'
+  file_name = 'orig-std-adlittle.json'
   with open(file_name, 'r') as fp:
     lp = LP(fp.read())
     sol = solve(lp)
